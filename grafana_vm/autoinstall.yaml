@@ -1,0 +1,132 @@
+#cloud-config
+# ============================================================
+# UBUNTU SERVER AUTOINSTALL WITH GRAFANA
+# ============================================================
+
+autoinstall:
+  version: 1
+
+  # ----------------------------------------------------------
+  # SECCION: LOCALIZACION Y REGIONALIZACION
+  # ----------------------------------------------------------
+  locale: es_CL.UTF-8
+  timezone: America/Santiago
+
+  keyboard:
+    layout: latam
+
+  # ----------------------------------------------------------
+  # SECCION: IDENTIDAD DEL SISTEMA
+  # ----------------------------------------------------------
+  identity:
+    hostname: grafana-vm
+    username: grafana-admin
+    # Nota: generar con mkpasswd -m sha-512
+    password: "$6$REEMPLAZAR_POR_HASH_REAL"
+
+  # ----------------------------------------------------------
+  # SECCION: ACTUALIZACIONES Y CONTROLADORES
+  # ----------------------------------------------------------
+
+  updates: security
+
+  drivers:
+    install: true
+
+  # ----------------------------------------------------------
+  # SECCION: SSH
+  # ----------------------------------------------------------
+  ssh:
+    install-server: true
+    allow-pw: true
+    allow-public-key: true
+
+  # ----------------------------------------------------------
+  # SECCION: PAQUETES A INSTALAR
+  # ----------------------------------------------------------
+  packages:
+    # Bloque: sistema base
+    - ca-certificates
+    - gnupg
+    - curl
+    - wget
+    - unzip
+    - git
+    - unattended-upgrades
+
+    # SSH
+    - openssh-server
+
+    # Bloque: dependencias para Grafana
+    - apt-transport-https
+    - software-properties-common
+
+    # Seguridad
+    - ufw         # Firewall básico
+    - fail2ban    # Protección contra ataques de fuerza bruta
+
+  # ----------------------------------------------------------
+  # SECCION: CONFIGURACION FINAL
+  # ----------------------------------------------------------
+  late-commands:
+    # SSH hardening básico
+    - curtin in-target -- sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
+    - curtin in-target -- sed -i '$a AllowUsers grafana-admin' /etc/ssh/sshd_config
+    - curtin in-target -- systemctl enable ssh
+    - curtin in-target -- systemctl restart ssh
+
+    ################################################
+    ### Agregar repositorio oficial de Grafana
+    # Import the GPG key:
+    - curtin in-target -- mkdir -p /etc/apt/keyrings
+    - curtin in-target -- wget -O /etc/apt/keyrings/grafana.asc https://apt.grafana.com/gpg-full.key
+    - curtin in-target -- chmod 644 /etc/apt/keyrings/grafana.asc
+
+    # Add the repository:
+    - curtin in-target -- bash -c 'echo "deb [signed-by=/etc/apt/keyrings/grafana.asc] https://apt.grafana.com stable main" > /etc/apt/sources.list.d/grafana.list'
+
+    # Update package lists and install Grafana:
+    - curtin in-target -- apt-get update
+    - curtin in-target -- apt-get install grafana -y
+
+    # Habilitar y arrancar el servicio de Grafana
+    - curtin in-target -- systemctl enable grafana-server
+    - curtin in-target -- systemctl start grafana-server
+    ################################################
+
+    ################################################
+    ### FIREWALL (UFW)
+    # Habilito los puertos para salida y bloqueo de entrada
+    - curtin in-target -- ufw default deny incoming
+    - curtin in-target -- ufw default allow outgoing
+
+    # Permitir SSH y Grafana para entrada
+    - curtin in-target -- ufw allow OpenSSH
+    - curtin in-target -- ufw allow 3000/tcp
+
+    # Habilitar UFW
+    - curtin in-target -- ufw --force enable
+    ################################################
+
+    ################################################
+    ### Fail2ban
+    # Se habilita
+    - curtin in-target -- systemctl enable fail2ban
+
+    # Configuración básica para proteger SSH
+    - |
+      curtin in-target -- bash -c "cat << 'EOF' >> /etc/fail2ban/jail.local
+      [sshd]
+      enabled = true
+      maxretry = 3
+      findtime = 10m
+      bantime = 1h
+      EOF"
+
+    # Reiniciar fail2ban para aplicar cambios
+    - curtin in-target -- systemctl restart fail2ban
+    ################################################
+
+    # Limpieza final
+    - curtin in-target -- apt-get autoremove -y
+    - curtin in-target -- apt-get clean
