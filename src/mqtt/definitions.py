@@ -7,3 +7,8 @@ class SensorMessage:
     value: float
     timestamp: str
 
+class UserRole:
+    ADMIN = "admin"
+    SOLAR_PANEL = "panel"
+    VISUALIZER = "visualizer"
+    SERVER = "server"

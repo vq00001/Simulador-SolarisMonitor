@@ -1,4 +1,7 @@
+import os
+
 CENTRAL_BROKER_CONFIG = {
-    "broker": "localhost",
-    "port": 1883,
+    # "hostname": "broker-vm.local",
+    "hostname": "172.31.181.0",
+    "port": 1883
 }

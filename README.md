@@ -1,6 +1,3 @@
-Aquí tienes una versión más limpia, estructurada y visualmente profesional del README, manteniendo tu contenido pero mejor organizado:
-
----
 
 # Simulador SolarisMonitor
 
