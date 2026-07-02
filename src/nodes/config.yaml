@@ -1,0 +1,63 @@
+# Configuración de la conexión MQTT
+
+mqtt:
+  broker_host: localhost
+  broker_port: 1883
+  topic_prefix: solar/panel
+  qos: 0
+  keepalive: 60
+
+# Configuración de la simulación
+
+simulation:
+  tick_rate: 1.0          # Segundos reales entre actualizaciones del ambiente
+  publish_rate: 5.0       # Segundos reales entre publicaciones MQTT
+  time_scale: 60.0        # 1 s real = 60 s simulados  →  1 día = 24 min reales
+  duration: null          # Duración total en segundos reales; null = forever
+
+# Configuración del ambiente
+
+environment:
+  day_period: 60.0           # Segundos simulados por día
+  t_ambient_base: 20.0       # Temperatura ambiente base (°C)
+  t_ambient_amplitude: 8.0   # Variación térmica diaria (°C)
+
+panels:
+  area: 1.72                     # Área del panel (m²)
+  efficiency: 0.20               # Eficiencia de conversión fotovoltaica
+  max_irradiance: 1000.0         # Irradiancia solar máxima (W/m²)
+  max_dirt_loss: 0.75            # Pérdida máxima de eficiencia por suciedad [0, 1]
+  dirt_drift_rate: 0.0001        # Tasa media de acumulación de suciedad por tick
+  dirt_drift_std: 0.00005        # Ruido gaussiano en la acumulación de suciedad
+  temp_irradiance_coeff: 0.03    # Calentamiento del panel (°C por W/m²)
+
+sensors:
+  lux_per_wm2: 93.0          # Factor de conversión luminosidad (lux / W/m²)
+  irradiance_std: 2.0        # Ruido de medición irradiancia (W/m²)
+  temperature_std: 0.3       # Ruido de medición temperatura (°C)
+  luminosity_std: 5.0        # Ruido de medición luminosidad (lux)
+  power_std: 0.5             # Ruido de medición potencia (W)
+
+events:
+  rate_per_second: 0.005     # Tasa de eventos de sombreado por cluster por segundo
+  beta_alpha: 2.0            # Parámetro α de la Beta (intensidad de bloqueo)
+  beta_beta: 5.0             # Parámetro β de la Beta (sesga hacia bloqueos leves)
+  exp_mean_duration: 5.0    # Duración media de un evento (segundos simulados)
+  min_duration: 1.0          # Duración mínima de un evento (segundos simulados)
+  whole_cluster_prob: 0.7    # Probabilidad de que el evento afecte al cluster completo
+
+clusters:
+  - id: 0
+    name: zona_norte
+    phi_offset: 0.0          # Sin desfase (zona de referencia)
+    panel_count: 100
+
+  - id: 1
+    name: zona_centro
+    phi_offset: 0.2618       # π/12 rad ≈ 30 min de desfase
+    panel_count: 150
+
+  - id: 2
+    name: zona_sur
+    phi_offset: 0.5236       # π/6 rad ≈ 1 h de desfase
+    panel_count: 100
