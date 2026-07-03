@@ -55,6 +55,10 @@ autoinstall:
     - mosquitto
     - mosquitto-clients
 
+    # Base de datos
+    - postgresql
+    - postgresql-client
+
   # ----------------------------------------------------------
   # SECCION: CONFIGURACION FINAL
   # ----------------------------------------------------------
@@ -71,3 +75,16 @@ autoinstall:
     - curtin in-target -- python3 /home/brokeradmin/Simulador-SolarisMonitor/config/mosquitto_setup.py --mode automatic
     
     - curtin in-target -- echo "Configuración de mosquitto finalizada"
+
+    # Configuraciones de la base de datos 
+    - curtin in-target -- systemctl enable postgresql --now
+    #Crea el usuario y lo guarda en la variable de entorno DATABASE_URL
+    - curtin in-target -- sudo -u postgres psql -c "CREATE USER solaris WITH PASSWORD 'solaris123';"
+    - curtin in-target -- bash -c 'echo "DATABASE_URL=postgresql+asyncpg://solaris:solaris123@localhost/solarismonitor" >> /etc/environment'
+    - curtin in-target -- bash -c 'echo "DATABASE_URL_SYNC=postgresql://solaris:solaris123@localhost/solarismonitor" >> /etc/environment'
+    # Crea la base de datos solarismonitor y le asigna el usuario solaris como propietario
+    - curtin in-target -- sudo -u postgres createdb -O solaris solarismonitor
+    #Instala dependencias del server
+    - curtin in-target -- su - brokeradmin -c 'python3 -m venv ~/venv'
+    - curtin in-target -- su - brokeradmin -c '~/venv/bin/pip install -r ~/Simulador-SolarisMonitor/requirements.txt'
+    
