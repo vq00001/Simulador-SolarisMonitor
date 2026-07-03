@@ -1,1 +1,4 @@
 paho-mqtt
+aiomqtt>=2.0.0      # Cliente MQTT asíncrono (API moderna async/await)
+numpy>=1.26.0       # Operaciones vectorizadas sobre arrays de paneles
+pyyaml>=6.0         # Carga de configuración desde YAML

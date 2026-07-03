@@ -1,9 +1,9 @@
 # Configuración de la conexión MQTT
 
 mqtt:
-  broker_host: localhost
+  broker_host: broker-vm.local   # alineado con CENTRAL_BROKER_CONFIG en src/config/settings.py
   broker_port: 1883
-  topic_prefix: solar/panel
+  topic_prefix: solar_panel_data # alineado con PanelClient.Topic.ROOT en src/mqtt/panel_client.py
   qos: 0
   keepalive: 60
 

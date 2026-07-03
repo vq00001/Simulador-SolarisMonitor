@@ -63,9 +63,11 @@ class EventConfig:
 
 @dataclass
 class MQTTConfig:
-    broker_host: str = "localhost"
+    # Valores por defecto alineados con src/config/settings.py
+    # (CENTRAL_BROKER_CONFIG) y src/mqtt/panel_client.py (Topic.ROOT).
+    broker_host: str = "broker-vm.local"
     broker_port: int = 1883
-    topic_prefix: str = "solar/panel"
+    topic_prefix: str = "solar_panel_data"
     qos: int = 0
     keepalive: int = 60
 
