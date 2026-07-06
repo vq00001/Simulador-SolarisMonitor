@@ -11,7 +11,7 @@ from typing import Optional
 
 import yaml
 
-
+from src.config.settings import CENTRAL_BROKER_CONFIG
 # ──────────────────────────────────────────────────────────────────────────────
 #  Secciones de configuración
 # ──────────────────────────────────────────────────────────────────────────────
@@ -65,11 +65,11 @@ class EventConfig:
 class MQTTConfig:
     # Valores por defecto alineados con src/config/settings.py
     # (CENTRAL_BROKER_CONFIG) y src/mqtt/panel_client.py (Topic.ROOT).
-    broker_host: str = "broker-vm.local"
-    broker_port: int = 1883
-    topic_prefix: str = "solar_panel_data"
-    qos: int = 0
-    keepalive: int = 60
+    broker_host: str = CENTRAL_BROKER_CONFIG.broker_host
+    broker_port: int = CENTRAL_BROKER_CONFIG.broker_port
+    topic_prefix: str = CENTRAL_BROKER_CONFIG.topic_prefix
+    qos: int = CENTRAL_BROKER_CONFIG.qos
+    keepalive: int = CENTRAL_BROKER_CONFIG.keepalive
 
 
 @dataclass

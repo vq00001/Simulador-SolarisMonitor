@@ -35,6 +35,7 @@ import numpy as np
 import aiomqtt
 
 from config import AppConfig
+from src.config.settings import PANEL_CLIENT_CONFIG
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +71,8 @@ class MQTTPublisher:
             hostname=mc.broker_host,
             port=mc.broker_port,
             keepalive=mc.keepalive,
+            username=CONFIG.SERVER_CLIENT_CONFIG["username"],
+            password=CONFIG.SERVER_CLIENT_CONFIG["password"],
         )
         await self._client.__aenter__()
         logger.info(

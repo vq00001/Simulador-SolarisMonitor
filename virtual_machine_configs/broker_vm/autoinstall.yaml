@@ -8,8 +8,9 @@ autoinstall:
   identity:
     hostname: broker-vm
     username: brokeradmin
-    # Generar contraseña con mkpasswd -m sha-512
-    password: "password"
+    # Generar contraseña con mkpasswd -m sha-512. 
+    # La contraseña es "brokeradmin" y se puede cambiar después de la instalación.
+    password: "$6$TNxrzr58RzVi1goJ$D9SlN7rxxDFmiKm0ERbKax2YCf8PJqoOVdrLt/.Mcsw4a1tQ0n1dYc08lD4C5RLhw2EsoHugP/KMqt49ZczXT0"
   
   # Setup network con DHCP para todas las interfaces de red
   network:
@@ -47,6 +48,8 @@ autoinstall:
     - python3-pip
     - python3-venv
     - avahi-daemon
+    - net-tools
+    - whoami
 
     # Bloque: sistema base
     - git
@@ -59,7 +62,6 @@ autoinstall:
   # SECCION: CONFIGURACION FINAL
   # ----------------------------------------------------------
   late-commands: # broker-vm.local -> IP
-    - curtin in target -- apt update
     - curtin in-target -- systemctl enable avahi-daemon --now
 
     # ejecutar script de configuracion de mosquitto
@@ -70,4 +72,28 @@ autoinstall:
     - curtin in-target -- su - brokeradmin -c 'git clone https://github.com/vq00001/Simulador-SolarisMonitor ~/Simulador-SolarisMonitor'
     - curtin in-target -- python3 /home/brokeradmin/Simulador-SolarisMonitor/config/mosquitto_setup.py --mode automatic
     
+      # mover archivos de configuracion a /etc/mosquitto
+    - curtin in-target -- mv /home/brokeradmin/Simulador-SolarisMonitor/virtual_machine_configs/broker_vm/mosquitto.conf /etc/mosquitto
+    - curtin in-target -- mv /home/brokeradmin/Simulador-SolarisMonitor/virtual_machine_configs/broker_vm/acl /etc/mosquitto
+    - curtin in-target -- chown mosquitto:mosquitto /etc/mosquitto/mosquitto.conf
+    - curtin in-target -- chown mosquitto:mosquitto /etc/mosquitto/acl
+
+    - curtin in-target -- systemctl restart mosquitto
     - curtin in-target -- echo "Configuración de mosquitto finalizada"
+
+    # configurar red para simular condiciones de red
+    # reconocer la interfaz de red predeterminada y aplicar limitaciones de ancho de banda y latencia
+    - |
+      curtin in-target -- bash -c '
+        BANDWIDTH=54mbit
+        DELAY=2ms
+        LOSS=0.1%
+
+        IFACE=$(ip route | awk "/default/ {print \$5}")             
+        tc qdisc add dev "$IFACE" root netem \
+          rate "$BANDWIDTH" \
+          delay "$DELAY"\
+          loss "$LOSS"
+      '
+
+    - curtin in-target -- echo "Configuración de red finalizada"

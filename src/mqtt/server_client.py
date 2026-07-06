@@ -25,6 +25,8 @@ class ServerClient:
             hostname=hostname,
             port=port,
             identifier=UserRole.SERVER
+            username=SERVER_CLIENT_CONFIG["username"],
+            password=SERVER_CLIENT_CONFIG["password"]
         ) as client:
 
             # suscribirse a los topics definidos en la clase
