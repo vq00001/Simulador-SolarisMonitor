@@ -12,3 +12,4 @@ class UserRole:
     SOLAR_PANEL = "panel"
     VISUALIZER = "visualizer"
     SERVER = "server"
+    ACTUADOR = "actuador"

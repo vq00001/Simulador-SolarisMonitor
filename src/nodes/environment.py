@@ -217,3 +217,8 @@ class EnvModel:
         for event in self._events:
             shadow[event.panel_mask] *= (1.0 - event.intensity)
         self._shadow = shadow
+
+    def clear_shadow_events(self) -> None:
+        """Elimina todos los eventos de sombreado activos y restablece la sombra."""
+        self._events.clear()
+        self._shadow = np.ones(self._n, dtype=np.float64)

@@ -142,6 +142,17 @@ class Simulation:
             return
         await self.panels.clean_panels(panel_ids, delay)
 
+    async def clear_shadow_events(self, delay: float = 0.0) -> None:
+        """
+        Elimina todos los eventos de sombra activos.
+
+        Esto simula una corrección del ambiente, por ejemplo una nube que se disipa.
+        """
+        if delay > 0.0:
+            await asyncio.sleep(delay)
+        self.env.clear_shadow_events()
+        logger.info(f"Eventos de sombra eliminados (delay={delay:.1f}s)")
+
     def get_cluster_panels(self, cluster_id: int) -> np.ndarray:
         """Devuelve los índices de los paneles pertenecientes al cluster dado."""
         return np.where(self.panel_cluster == cluster_id)[0]
