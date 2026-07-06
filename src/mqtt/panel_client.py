@@ -1,7 +1,6 @@
 import aiomqtt
-from src.mqtt.broker import Broker
-from src.mqtt.definitions import UserRole
 
+from src.mqtt.broker import Broker
 
 
 class PanelClient:
@@ -19,14 +18,12 @@ class PanelClient:
 
         # llevar la cuenta de los paneles solares conectados
         PanelClient.panel_counter += 1
-        
+
     async def publish(self, message: str, topic: str = Topic.ROOT):
-        
         topic = f"{self.panel_id}/{topic}"
         hostname, port = self.broker.get_broker_info()
+
         async with aiomqtt.Client(
-            hostname=hostname,
-            port=port,
-            identifier=self.panel_id
+            hostname=hostname, port=port, identifier=self.panel_id
         ) as client:
             await client.publish(topic, message)

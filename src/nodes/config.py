@@ -4,6 +4,7 @@ config.py — Dataclasses de configuración y carga desde YAML.
 Cada sección del YAML corresponde a un dataclass.
 Los campos con default permiten omitirlos en el YAML.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -11,10 +12,10 @@ from typing import Optional
 
 import yaml
 
-
 # ──────────────────────────────────────────────────────────────────────────────
 #  Secciones de configuración
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 @dataclass
 class SimulationConfig:
@@ -26,20 +27,20 @@ class SimulationConfig:
 
 @dataclass
 class EnvironmentConfig:
-    day_period: float = 86400.0        # Segundos simulados por día
-    t_ambient_base: float = 25.0       # Temperatura base (°C)
-    t_ambient_amplitude: float = 10.0  # Amplitud de variación térmica (°C)
+    day_period: float = 86400.0         # Segundos simulados por día
+    t_ambient_base: float = 25.0        # Temperatura base (°C)
+    t_ambient_amplitude: float = 10.0   # Amplitud de variación térmica (°C)
 
 
 @dataclass
 class PanelPhysicsConfig:
-    area: float = 1.72               # Área del panel (m²)
-    efficiency: float = 0.20         # Eficiencia de conversión
-    max_irradiance: float = 1000.0   # Irradiancia pico (W/m²)
-    max_dirt_loss: float = 0.30      # Pérdida máxima por suciedad [0, 1]
-    dirt_drift_rate: float = 0.0001  # Drift medio de acumulación de suciedad
-    dirt_drift_std: float = 0.00005  # Ruido en la acumulación de suciedad
-    temp_irradiance_coeff: float = 0.03  # Calentamiento (°C por W/m²)
+    area: float = 1.72                    # Área del panel (m²)
+    efficiency: float = 0.20              # Eficiencia de conversión
+    max_irradiance: float = 1000.0        # Irradiancia pico (W/m²)
+    max_dirt_loss: float = 0.30           # Pérdida máxima por suciedad [0, 1]
+    dirt_drift_rate: float = 0.0001       # Drift medio de acumulación de suciedad
+    dirt_drift_std: float = 0.00005       # Ruido en la acumulación de suciedad
+    temp_irradiance_coeff: float = 0.03   # Calentamiento (°C por W/m²)
 
 
 @dataclass
@@ -76,13 +77,14 @@ class MQTTConfig:
 class ClusterConfig:
     id: int
     name: str
-    phi_offset: float   # Desfase de fase en el ciclo solar (radianes)
+    phi_offset: float  # Desfase de fase en el ciclo solar (radianes)
     panel_count: int
 
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  Configuración raíz
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 @dataclass
 class AppConfig:
@@ -102,6 +104,7 @@ class AppConfig:
 # ──────────────────────────────────────────────────────────────────────────────
 #  Carga desde YAML
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def load_config(path: str) -> AppConfig:
     """Lee el archivo YAML y construye el AppConfig."""

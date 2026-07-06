@@ -10,6 +10,7 @@ Todo lo demás (irradiancia, potencia, temperatura, luminosidad) se calcula
 en cada tick a partir de dirt_factor + las salidas del EnvModel.
 No hay estado adicional: menos memoria, más caché-friendly.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -17,7 +18,7 @@ import logging
 
 import numpy as np
 
-from config import AppConfig
+from .config import AppConfig
 
 logger = logging.getLogger(__name__)
 
@@ -48,9 +49,7 @@ class PanelSimulator:
         Resultado clipeado a [0, 1] para mantener el invariante.
         """
         pc = self._cfg.panels
-        delta = pc.dirt_drift_rate + self._rng.normal(
-            0.0, pc.dirt_drift_std, self._n
-        )
+        delta = pc.dirt_drift_rate + self._rng.normal(0.0, pc.dirt_drift_std, self._n)
         self.dirt_factor = np.clip(self.dirt_factor + delta, 0.0, 1.0)
 
     # ── Cálculo de sensores ───────────────────────────────────────────────────
@@ -112,8 +111,7 @@ class PanelSimulator:
         # Luminosidad (lux)
         luminosity = np.maximum(
             0.0,
-            irradiance * sc.lux_per_wm2
-            + rng.normal(0.0, sc.luminosity_std, self._n),
+            irradiance * sc.lux_per_wm2 + rng.normal(0.0, sc.luminosity_std, self._n),
         )
 
         return {
@@ -138,9 +136,7 @@ class PanelSimulator:
             IndexError: si panel_id está fuera de rango.
         """
         if not 0 <= panel_id < self._n:
-            raise IndexError(
-                f"Panel ID {panel_id} fuera de rango [0, {self._n - 1}]"
-            )
+            raise IndexError(f"Panel ID {panel_id} fuera de rango [0, {self._n - 1}]")
         if delay > 0.0:
             await asyncio.sleep(delay)
         self.dirt_factor[panel_id] = 0.0
@@ -161,6 +157,4 @@ class PanelSimulator:
         if delay > 0.0:
             await asyncio.sleep(delay)
         self.dirt_factor[panel_ids] = 0.0
-        logger.info(
-            f"{len(panel_ids)} paneles limpiados (delay={delay:.1f}s)"
-        )
+        logger.info(f"{len(panel_ids)} paneles limpiados (delay={delay:.1f}s)")

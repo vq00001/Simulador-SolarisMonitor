@@ -24,6 +24,7 @@ Por cada panel se publican dos formas del mismo dato, en paralelo:
     }
    metrics: temperature, power, irradiance, luminosity
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -31,10 +32,10 @@ import json
 import logging
 import time
 
-import numpy as np
 import aiomqtt
+import numpy as np
 
-from config import AppConfig
+from .config import AppConfig
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +60,7 @@ class MQTTPublisher:
             await publisher.publish_all(sensors, n_panels)
     """
 
-    def __init__(self, cfg: AppConfig, client_cls = aiomqtt.Client) -> None:
+    def __init__(self, cfg: AppConfig, client_cls=aiomqtt.Client) -> None:
         self._cfg = cfg
         self._client_cls = client_cls
         self._client = None  # type: ignore[assignment]
@@ -72,9 +73,7 @@ class MQTTPublisher:
             keepalive=mc.keepalive,
         )
         await self._client.__aenter__()
-        logger.info(
-            f"Conectado al broker MQTT en {mc.broker_host}:{mc.broker_port}"
-        )
+        logger.info(f"Conectado al broker MQTT en {mc.broker_host}:{mc.broker_port}")
         return self
 
     async def __aexit__(self, *args: object) -> None:
@@ -129,6 +128,11 @@ class MQTTPublisher:
         topic_prefix: str,
         qos: int,
     ) -> None:
+        if self._client is None:
+            raise RuntimeError(
+                "MQTTPublisher debe usarse como context manager asíncrono."
+            )
+
         # 1. JSON combinado (formato original, se mantiene como fallback)
         payload = json.dumps({
             "id_panel":    panel_id,

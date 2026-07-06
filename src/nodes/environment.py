@@ -9,6 +9,7 @@ Gestiona:
 Los outputs son arrays (N,) de float64 que el PanelSimulator consume
 directamente sin copias intermedias.
 """
+
 from __future__ import annotations
 
 import logging
@@ -16,7 +17,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from config import AppConfig
+from .config import AppConfig
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,7 @@ logger = logging.getLogger(__name__)
 # ──────────────────────────────────────────────────────────────────────────────
 #  Evento de sombreado
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 @dataclass
 class ShadowEvent:
@@ -35,6 +37,7 @@ class ShadowEvent:
         intensity:   fracción de luz solar bloqueada ∈ [0, 1].
         remaining:   segundos simulados que le quedan al evento.
     """
+
     panel_mask: np.ndarray
     intensity: float
     remaining: float
@@ -43,6 +46,7 @@ class ShadowEvent:
 # ──────────────────────────────────────────────────────────────────────────────
 #  Modelo ambiental
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 class EnvModel:
     """
@@ -70,9 +74,7 @@ class EnvModel:
         self._rng = np.random.default_rng()
 
         # Desfase de fase solar por panel (derivado del cluster al que pertenece)
-        phi_by_cluster: dict[int, float] = {
-            c.id: c.phi_offset for c in cfg.clusters
-        }
+        phi_by_cluster: dict[int, float] = {c.id: c.phi_offset for c in cfg.clusters}
         self._phi: np.ndarray = np.array(
             [phi_by_cluster[cid] for cid in panel_cluster],
             dtype=np.float64,
@@ -142,10 +144,8 @@ class EnvModel:
         """Temperatura ambiente: onda seno que sigue al ciclo solar."""
         env = self._cfg.environment
         T = env.day_period
-        self._ambient_temp = (
-            env.t_ambient_base
-            + env.t_ambient_amplitude
-            * np.sin(2.0 * np.pi * t_sim / T - np.pi / 2.0)
+        self._ambient_temp = env.t_ambient_base + env.t_ambient_amplitude * np.sin(
+            2.0 * np.pi * t_sim / T - np.pi / 2.0
         )
 
     def _tick_events(self, dt: float) -> None:
@@ -193,11 +193,13 @@ class EnvModel:
                 float(rng.exponential(ec.exp_mean_duration)),
             )
 
-            self._events.append(ShadowEvent(
-                panel_mask=mask,
-                intensity=intensity,
-                remaining=duration,
-            ))
+            self._events.append(
+                ShadowEvent(
+                    panel_mask=mask,
+                    intensity=intensity,
+                    remaining=duration,
+                )
+            )
 
             logger.debug(
                 f"[{cluster.name}] Nuevo evento: intensidad={intensity:.2f}, "

@@ -10,18 +10,19 @@ Cada tick real de tick_rate segundos:
 El tiempo simulado avanza a tick_rate × time_scale segundos por tick,
 lo que permite comprimir el ciclo día/noche para pruebas.
 """
+
 from __future__ import annotations
 
 import asyncio
 import logging
-import aiomqtt
 
+import aiomqtt
 import numpy as np
 
-from config import AppConfig
-from environment import EnvModel
-from panels import PanelSimulator
-from publisher import MQTTPublisher
+from .config import AppConfig
+from .environment import EnvModel
+from .panels import PanelSimulator
+from .publisher import MQTTPublisher
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +34,7 @@ class Simulation:
     Expone también métodos de actuación (limpieza de paneles individuales/clusters).
     """
 
-    def __init__(self, cfg: AppConfig, client_cls = aiomqtt.Client) -> None:
+    def __init__(self, cfg: AppConfig, client_cls=aiomqtt.Client) -> None:
         self._cfg = cfg
         self._client_cls = client_cls
         self.n_panels: int = cfg.total_panels
@@ -58,9 +59,9 @@ class Simulation:
         o el usuario interrumpa con Ctrl+C.
         """
         sc = self._cfg.simulation
-        tick_dt_real = sc.tick_rate                    # segundos reales por tick
-        sim_dt = tick_dt_real * sc.time_scale          # segundos simulados por tick
-        publish_interval = sc.publish_rate             # segundos reales entre publishes
+        tick_dt_real = sc.tick_rate             # segundos reales por tick
+        sim_dt = tick_dt_real * sc.time_scale   # segundos simulados por tick
+        publish_interval = sc.publish_rate      # segundos reales entre publishes
 
         t_sim: float = 0.0
         t_real_last_publish: float = -publish_interval  # fuerza publish en t=0
@@ -68,7 +69,11 @@ class Simulation:
         logger.info(
             f"Iniciando: tick={tick_dt_real}s, publish={publish_interval}s, "
             f"time_scale={sc.time_scale}x"
-            + (f", duración={sc.duration}s" if sc.duration else ", sin límite de tiempo")
+            + (
+                f", duración={sc.duration}s"
+                if sc.duration
+                else ", sin límite de tiempo"
+            )
         )
 
         loop = asyncio.get_running_loop()

@@ -1,9 +1,10 @@
+import asyncio
+
 from src.mqtt.broker import Broker
 from src.mqtt.panel_client import PanelClient
-import asyncio
-import time
 
-async def main():    
+
+async def main():
     broker = Broker()
     panel_client = PanelClient(broker)
 
@@ -14,6 +15,6 @@ async def main():
         await panel_client.publish(message, PanelClient.Topic.ROOT)
         await asyncio.sleep(1)  # Esperar 1 segundo antes de enviar el siguiente mensaje
 
+
 if __name__ == "__main__":
-    
     asyncio.run(main())

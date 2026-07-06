@@ -9,6 +9,7 @@ import aiomqtt
 
 from src.mqtt.broker import Broker
 from src.mqtt.definitions import UserRole
+
 from .simulation import Simulation
 
 logger = logging.getLogger(__name__)

@@ -1,5 +1,6 @@
 from src.config.settings import CENTRAL_BROKER_CONFIG
 
+
 class Broker:
     def __init__(self):
         self.hostname = CENTRAL_BROKER_CONFIG["hostname"]
