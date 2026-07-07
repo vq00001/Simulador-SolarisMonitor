@@ -1,4 +1,4 @@
-import select
+from sqlalchemy import select
 
 from src.server.database.init_db import init_db
 from src.server.enums.tipos_medicion import TipoMedicionEnum
@@ -19,14 +19,14 @@ async def main():
             if result.scalar_one_or_none() is None:
                 await registrar_tipo_medicion(
                     session,
-                    TipoMedicionEnum.TEMPERATURA.value,
-                    "°C"
+                    tipo=TipoMedicionEnum.TEMPERATURA.value,
+                    unidad="°C"
                 )
 
                 await registrar_tipo_medicion(
                     session,
-                    TipoMedicionEnum.LUMINOSIDAD.value,
-                    "lux"
+                    tipo=TipoMedicionEnum.LUMINOSIDAD.value,
+                    unidad="lux"
                 )
 
                 await session.commit()

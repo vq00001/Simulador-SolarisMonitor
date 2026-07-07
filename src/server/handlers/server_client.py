@@ -1,5 +1,5 @@
 # singleton
-import datetime
+from datetime import datetime
 
 import aiomqtt 
 from src.mqtt.definitions import UserRole
@@ -14,7 +14,7 @@ from src.server.services.panel_services import get_panel_by_uid, get_panel_by_ui
 class ServerClient:
 
     topics = [
-        "+/" + PanelClient.Topic.ROOT,    # escuchar todos los paneles solares
+        PanelClient.Topic.ROOT + "/+/" + "+",    # escuchar todos los paneles solares
     ]
     
     def __init__(self, broker: Broker):
@@ -28,7 +28,7 @@ class ServerClient:
     async def llenar_cache(self):
         async with SessionLocal() as session:
             for tipo in TipoMedicionEnum:
-                self.tipos[tipo.value] = get_by_tipo(session,tipo.value).id
+                self.tipos[tipo.value] = (await get_by_tipo(session,tipo.value)).id
 
     async def get_panel_id(self, session, panel_uid: str) -> int:
         """
@@ -38,14 +38,16 @@ class ServerClient:
         panel = self.cache_paneles.get(panel_uid, 0)
         if panel == 0:
             panel = await get_panel_by_uid_or_create(session, panel_uid)
-            self.cache_paneles[panel_uid] = panel.id
+            panel = panel.id
+            self.cache_paneles[panel_uid] = panel
         
-        return panel.id
+        return panel
 
     async def procesar_datos(self,panel_uid: str, tipo_medicion: str, payload: float):
         """
         Procesa los datos recibidos en el mensaje y registra la medición en la base de datos.
         """
+        payload = int(payload)
         async with SessionLocal() as session:
             try:
                 panel_id = await self.get_panel_id(session, panel_uid)
@@ -56,7 +58,8 @@ class ServerClient:
                                     valor=payload, 
                                     timestamp=datetime.now()
                 )
-                session.commit()
+                await session.commit()
+                print("Commit hecho")
             except Exception as e:
                 session.rollback()
                 raise e
@@ -66,6 +69,7 @@ class ServerClient:
         Envia retroalimentación a un actuador para que repare la situacion si corresponde
         """
         msg = None
+        payload = int(payload)
         match tipo_medicion:
             case TipoMedicionEnum.TEMPERATURA.value:
                 if payload > 80:
@@ -99,9 +103,8 @@ class ServerClient:
         
         hostname, port = self.broker.get_broker_info()
         async with aiomqtt.Client(
-            hostname=hostname,
-            port=port,
-            identifier=self.panel_id
+            hostname="localhost",
+            port=1883
         ) as client:
             await client.publish(topic, message)
 
@@ -111,15 +114,19 @@ class ServerClient:
         hostname, port = self.broker.get_broker_info()
        
         async with aiomqtt.Client(
-            hostname=hostname,
-            port=port,
-            identifier=UserRole.SERVER
+            hostname="localhost",
+            port=1883, 
         ) as client:
 
+            print("VOY A EMPEZAR A SUSCRIBIRME A COSAS")
             # suscribirse a los topics definidos en la clase
             for t in ServerClient.topics:
                 await client.subscribe(t)
+            
+            print("VOY A EMPEZAR A ESUCHAR")
 
             # Llamar a funcion con logica a ejecutar al recibir un mensaje
             async for message in client.messages:
                 await self.do_on_message(message)
+
+            print("Termine de escuchar?")

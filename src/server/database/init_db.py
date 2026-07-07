@@ -4,7 +4,10 @@ from sqlalchemy import create_engine
 import os
 
 # Importar modelos para que SQLAlchemy los registre
-from server.models import panel, sensor, medicion, tipo_medicion
+from src.server.models.panel import Panel
+from src.server.models.medicion import Medicion
+from src.server.models.tipo_medicion import TipoMedicion
+
 
 DATABASE_URL = os.environ["DATABASE_URL_SYNC"]  
 

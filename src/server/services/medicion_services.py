@@ -16,7 +16,7 @@ async def registrar_medicion(
     """
     Registra una nueva medición en la base de datos.
     """
-
+    print("REGISTRANDO MEDICION :)")
     medicion = Medicion(
         #sensor_id=sensor_id,
         panel_id=panel_id,
