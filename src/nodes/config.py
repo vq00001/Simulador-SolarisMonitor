@@ -6,10 +6,18 @@ Los campos con default permiten omitirlos en el YAML.
 """
 from __future__ import annotations
 
+import sys
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional
 
 import yaml
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
+
+from src.config.settings import CENTRAL_BROKER_CONFIG, PANEL_CLIENT_CONFIG
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -63,19 +71,18 @@ class EventConfig:
 
 @dataclass
 class MQTTConfig:
-    # Valores por defecto alineados con src/config/settings.py
-    # (CENTRAL_BROKER_CONFIG) y src/mqtt/panel_client.py (Topic.ROOT).
-    # username/password quedan como fallback: el punto de entrada que
-    # use src.config.settings puede sobrescribirlos en tiempo de
-    # ejecución (ver test_publisher.py).
-    broker_host: str = "broker-vm"
-    broker_port: int = 8883
-    topic_prefix: str = "solar_panel_data"
-    qos: int = 0
-    keepalive: int = 60
-    username: Optional[str] = None
-    password: Optional[str] = None
-    use_tls: bool = False   # True si el broker exige TLS en broker_port
+    # Todos los valores por defecto vienen de src/config/settings.py, que
+    # es la única fuente de verdad para host/puerto/credenciales/topic.
+    # No hardcodear acá: si hay que cambiar el broker o las credenciales,
+    # se cambia en settings.py y se propaga solo.
+    broker_host: str = CENTRAL_BROKER_CONFIG["hostname"]
+    broker_port: int = CENTRAL_BROKER_CONFIG["port"]
+    topic_prefix: str = CENTRAL_BROKER_CONFIG["topic_prefix"]
+    qos: int = CENTRAL_BROKER_CONFIG["qos"]
+    keepalive: int = CENTRAL_BROKER_CONFIG["keepalive"]
+    use_tls: bool = CENTRAL_BROKER_CONFIG["use_tls"]
+    username: Optional[str] = PANEL_CLIENT_CONFIG["username"]
+    password: Optional[str] = PANEL_CLIENT_CONFIG["password"]
 
 
 @dataclass

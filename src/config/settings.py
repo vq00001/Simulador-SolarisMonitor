@@ -3,13 +3,15 @@ import os
 CENTRAL_BROKER_CONFIG = {
     "hostname": "broker-vm",
     "port": 1883,
+    "topic_prefix": "solar_panel_data",
 
     # Simulación del enlace
     "bandwidth_bps": 1_000_000,  # 1 Mbps
     "max_queue_size": 10000,
 
-    "qos": 0,
-    "keepalive": 60
+    "qos": 1,
+    "keepalive": 60,
+    "use_tls": False,
 }
 
 # usuarios y contraseñas de prueba para los clientes MQTT
