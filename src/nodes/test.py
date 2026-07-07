@@ -1,8 +1,9 @@
 """
 test.py
 
-Ejecuta la simulación completa conectándose al broker MQTT,
-usando las credenciales y datos de conexión de src/config/settings.py.
+Ejecuta la simulación completa conectándose al broker MQTT real,
+usando las credenciales y datos de conexión de src/config/settings.py
+(ya aplicados por defecto en MQTTConfig, ver src/nodes/config.py).
 Se ejecuta hasta presionar Ctrl+C.
 """
 
@@ -12,21 +13,11 @@ import asyncio
 import logging
 import sys
 import time
-from pathlib import Path
-
-# Bootstrap de sys.path: este archivo vive en src/nodes y se ejecuta con
-# imports "planos" (from config import ...), pero src.config.settings
-# requiere que la raíz del proyecto esté en sys.path. Se agrega acá para
-# no tener que reestructurar el resto de los imports del módulo nodes.
-_PROJECT_ROOT = Path(__file__).resolve().parents[2]
-if str(_PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(_PROJECT_ROOT))
 
 import aiomqtt
 
 from config import load_config
 from simulation import Simulation
-from src.config.settings import CENTRAL_BROKER_CONFIG, PANEL_CLIENT_CONFIG
 
 
 def setup_logging() -> None:
@@ -42,17 +33,6 @@ async def main():
 
     config_path = sys.argv[1] if len(sys.argv) > 1 else "config.yaml"
     cfg = load_config(config_path)
-
-    # src/config/settings.py es la fuente de verdad para la conexión real
-    # al broker; se sobrescriben acá los valores del YAML (que quedan
-    # como fallback para correr sin este archivo).
-    cfg.mqtt.broker_host = CENTRAL_BROKER_CONFIG["hostname"]
-    cfg.mqtt.broker_port = CENTRAL_BROKER_CONFIG["port"]
-    cfg.mqtt.qos = CENTRAL_BROKER_CONFIG["qos"]
-    cfg.mqtt.keepalive = CENTRAL_BROKER_CONFIG["keepalive"]
-    # Todos los nodos (paneles) usan la misma credencial por ahora.
-    cfg.mqtt.username = PANEL_CLIENT_CONFIG["username"]
-    cfg.mqtt.password = PANEL_CLIENT_CONFIG["password"]
 
     sim = Simulation(
         cfg,

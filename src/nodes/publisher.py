@@ -10,7 +10,6 @@ Por cada panel se publican dos formas del mismo dato, en paralelo:
     {
         "id_panel":    int,
         "tiempo":      float,   # segundos desde epoch (Unix timestamp)
-        "luminosidad": float,   # lux
         "potencia":    float,   # W
         "irradiancia": float,   # W/m²
         "temperatura": float    # °C
@@ -148,7 +147,6 @@ class MQTTPublisher:
         payload = json.dumps({
             "id_panel":    panel_id,
             "tiempo":      timestamp,
-            "luminosidad": round(float(sensors["luminosity"][panel_id]), 4),
             "potencia":    round(float(sensors["power"][panel_id]), 4),
             "irradiancia": round(float(sensors["irradiance"][panel_id]), 4),
             "temperatura": round(float(sensors["temperature"][panel_id]), 4),
@@ -156,18 +154,20 @@ class MQTTPublisher:
         topic = f"{topic_prefix}/{panel_id:04d}"
 
         # 2. Topics por métrica separada, en paralelo con el combinado
-        metric_payloads = [
-            (
-                f"{topic_prefix}/{metric}/{panel_id:04d}",
-                json.dumps({
-                    "value": round(float(sensors[metric][panel_id]), 4),
-                    "timestamp": str(timestamp),
-                }),
-            )
-            for metric in PER_METRIC_TOPICS
-        ]
+        # metric_payloads = [
+        #     (
+        #         f"{topic_prefix}/{metric}/{panel_id:04d}",
+        #         json.dumps({
+        #             "value": round(float(sensors[metric][panel_id]), 4),
+        #             "timestamp": str(timestamp),
+        #         }),
+        #     )
+        #     for metric in PER_METRIC_TOPICS
+        # ]
 
-        all_payloads = [(topic, payload)] + metric_payloads
+        # Si se quiere enviar por métrica separada, descomentar el punto 2 y sumarle 
+        # metric_payloads a all_payloads. Por ahora se envía solo el JSON combinado.
+        all_payloads = [(topic, payload)]
 
         self.messages_sent += len(all_payloads)
         self.bytes_sent += sum(len(p.encode()) for _, p in all_payloads)
