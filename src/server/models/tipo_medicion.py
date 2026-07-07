@@ -7,3 +7,4 @@ class TipoMedicion(Base):
     id = Column(Integer, primary_key=True)
     tipo = Column(String)
     unidad_medida = Column(String)
+    

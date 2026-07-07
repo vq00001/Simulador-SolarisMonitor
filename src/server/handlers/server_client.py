@@ -23,8 +23,9 @@ class ServerClient:
         self.cache_paneles : dict[str, tuple[int,int,int]] = {}  # Diccionario para almacenar los paneles en caché
         self.cache_sensores : dict[tuple[int,int], int] = {}  # Diccionario para almacenar los sensores en caché
         self.tipos = {}  # Diccionario para almacenar los tipos de medición en caché
-        for tipo in TipoMedicionEnum:
-            self.tipos[tipo.value] = get_by_tipo(tipo.value).id
+        with SessionLocal() as session:
+            for tipo in TipoMedicionEnum:
+                self.tipos[tipo.value] = get_by_tipo(session,tipo.value).id
 
     async def get_panel_id(self, session, panel_uid: str) -> int:
         """
