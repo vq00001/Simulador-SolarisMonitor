@@ -17,13 +17,13 @@ class ServerClient:
         "+/" + PanelClient.Topic.ROOT,    # escuchar todos los paneles solares
     ]
     
-    def __init__(self, broker: Broker):
+    async def __init__(self, broker: Broker):
         self.broker = broker
         # Se inicializan caches para evitar consultar base de datos
         self.cache_paneles : dict[str, tuple[int,int,int]] = {}  # Diccionario para almacenar los paneles en caché
         self.cache_sensores : dict[tuple[int,int], int] = {}  # Diccionario para almacenar los sensores en caché
         self.tipos = {}  # Diccionario para almacenar los tipos de medición en caché
-        with SessionLocal() as session:
+        async with SessionLocal() as session:
             for tipo in TipoMedicionEnum:
                 self.tipos[tipo.value] = get_by_tipo(session,tipo.value).id
 
@@ -43,7 +43,7 @@ class ServerClient:
         """
         Procesa los datos recibidos en el mensaje y registra la medición en la base de datos.
         """
-        with SessionLocal() as session:
+        async with SessionLocal() as session:
             try:
                 panel_id = await self.get_panel_id(session, panel_uid)
                 await registrar_medicion(
