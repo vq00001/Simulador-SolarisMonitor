@@ -78,12 +78,19 @@ autoinstall:
 
     # Configuraciones de la base de datos 
     - curtin in-target -- systemctl enable postgresql --now
+    
     #Crea el usuario y lo guarda en la variable de entorno DATABASE_URL
     - curtin in-target -- sudo -u postgres psql -c "CREATE USER solaris WITH PASSWORD 'solaris123';"
     - curtin in-target -- bash -c 'echo "DATABASE_URL=postgresql+asyncpg://solaris:solaris123@localhost/solarismonitor" >> /etc/environment'
     - curtin in-target -- bash -c 'echo "DATABASE_URL_SYNC=postgresql://solaris:solaris123@localhost/solarismonitor" >> /etc/environment'
+
     # Crea la base de datos solarismonitor y le asigna el usuario solaris como propietario
     - curtin in-target -- sudo -u postgres createdb -O solaris solarismonitor
+
+    - curtin in-target -- sed -i "s/^#\?listen_addresses.*/listen_addresses = '*'/" /etc/postgresql/*/main/postgresql.conf
+    - curtin in-target -- bash -c 'echo "host solarismonitor solaris_read 192.168.1.20/32 scram-sha-256" >> /etc/postgresql/*/main/pg_hba.conf'
+    - curtin in-target -- systemctl restart postgresql
+
     #Instala dependencias del server
     - curtin in-target -- su - brokeradmin -c 'python3 -m venv ~/venv'
     - curtin in-target -- su - brokeradmin -c '~/venv/bin/pip install -r ~/Simulador-SolarisMonitor/requirements.txt'

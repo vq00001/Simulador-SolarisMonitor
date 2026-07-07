@@ -1,11 +1,15 @@
 # singleton
+import datetime
+
 import aiomqtt 
 from src.mqtt.definitions import UserRole
 from src.mqtt.panel_client import PanelClient
 from src.mqtt.broker import Broker
+from src.server.database.session import SessionLocal
 from src.server.enums.tipos_medicion import TipoMedicionEnum
+from src.server.services.medicion_services import registrar_medicion
 from src.server.services.tipo_medicion_services import get_by_tipo
-from src.server.services.panel_services import get_panel_by_uid
+from src.server.services.panel_services import get_panel_by_uid, get_panel_by_uid_or_create
 
 class ServerClient:
 
@@ -13,7 +17,8 @@ class ServerClient:
         "+/" + PanelClient.Topic.ROOT,    # escuchar todos los paneles solares
     ]
     
-    def __init__(self):
+    def __init__(self, broker: Broker):
+        self.broker = broker
         # Se inicializan caches para evitar consultar base de datos
         self.cache_paneles : dict[str, tuple[int,int,int]] = {}  # Diccionario para almacenar los paneles en caché
         self.cache_sensores : dict[tuple[int,int], int] = {}  # Diccionario para almacenar los sensores en caché
@@ -21,29 +26,85 @@ class ServerClient:
         for tipo in TipoMedicionEnum:
             self.tipos[tipo.value] = get_by_tipo(tipo.value).id
 
-    def procesar_datos(session, msg):
+    async def get_panel_id(self, session, panel_uid: str) -> int:
+        """
+        Obtiene el ID del panel a partir de su UID.
+        Usa la caché si existe, si no, la consulta y la registra.
+        """
+        panel = self.cache_paneles.get(panel_uid, 0)
+        if panel == 0:
+            panel = await get_panel_by_uid_or_create(session, panel_uid)
+            self.cache_paneles[panel_uid] = panel.id
+        
+        return panel.id
+
+    async def procesar_datos(self,panel_uid: str, tipo_medicion: str, payload: float):
         """
         Procesa los datos recibidos en el mensaje y registra la medición en la base de datos.
         """
-        topic = str(msg.topic)
-        _, panel_uid, tipo_medicion = topic.split("/")
-        payload = msg.payload.decode()
+        with SessionLocal() as session:
+            try:
+                panel_id = await self.get_panel_id(session, panel_uid)
+                await registrar_medicion(
+                                    session,
+                                    panel_id=panel_id, 
+                                    tipo_medicion_id=self.tipos[tipo_medicion], 
+                                    valor=payload, 
+                                    timestamp=datetime.now()
+                )
+                session.commit()
+            except Exception as e:
+                session.rollback()
+                raise e
 
-        panel_id = get_panel_id(session, panel_uid)
-        #Buscar sensor con tipo y panel_id
-        sensor = session.query(Sensor).filter_by(panel_id=panel_id, tipo_medicion_id=tipo_medicion).first()
+    async def retroalimentar(self, panel_uid: str, tipo_medicion: str, payload: float):
+        """
+        Envia retroalimentación a un actuador para que repare la situacion si corresponde
+        """
+        msg = None
+        match tipo_medicion:
+            case TipoMedicionEnum.TEMPERATURA.value:
+                if payload > 80:
+                    print(f"ALERTA: La temperatura del panel {panel_uid} es demasiado alta: {payload}°C. Activando sistema de enfriamiento.")
+                    msg = "ENFRIAR"
+                elif payload < 15:
+                    print(f"ALERTA: La temperatura del panel {panel_uid} es demasiado baja: {payload}°C.")
+                    msg = "CALENTAR"
 
-    
+            case TipoMedicionEnum.LUMINOSIDAD.value:
+                if payload < 100:
+                    print(f"ALERTA: La luminosidad del panel {panel_uid} es demasiado baja: {payload}.")
+                    msg = "AUMENTAR_LUMINOSIDAD"
+
+                elif payload > 1000:
+                    print(f"ALERTA: La luminosidad del panel {panel_uid} es demasiado alta: {payload}. Bro Wtf se cae el sol ")    
+                    msg = "CORRE"
+
+        if msg:
+            print(f"Enviando mensaje de retroalimentación al panel {panel_uid}: {msg}")
+            await self.publish(msg, f"{panel_uid}/actuador")
+
     # Logica a ejecutar al recibir un mensaje
     async def do_on_message(self, message):
-        topic = str(message.topic)
+        root, panel_uid, tipo_medicion = str(message.topic).split("/")
         payload = message.payload.decode()
-        print(f"[{topic}] {payload}")
+        await self.procesar_datos(panel_uid,tipo_medicion,payload)
+        await self.retroalimentar(panel_uid, tipo_medicion, payload)
+
+    async def publish(self, message: str, topic: str):
+        
+        hostname, port = self.broker.get_broker_info()
+        async with aiomqtt.Client(
+            hostname=hostname,
+            port=port,
+            identifier=self.panel_id
+        ) as client:
+            await client.publish(topic, message)
 
     # Función para escuchar mensajes
-    async def listen(self, broker_host: Broker):
+    async def listen(self):
 
-        hostname, port = broker_host.get_broker_info()
+        hostname, port = self.broker.get_broker_info()
        
         async with aiomqtt.Client(
             hostname=hostname,

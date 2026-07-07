@@ -1,5 +1,5 @@
-from server.db.base import Base
-from server.db.session import engine
+from src.server.database.base import Base
+from src.server.database.session import engine
 from sqlalchemy import create_engine
 import os
 

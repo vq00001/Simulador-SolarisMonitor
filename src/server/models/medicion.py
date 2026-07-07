@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, Float, DateTime, ForeignKey
-from app.db.base import Base
+from src.server.database.base import Base
 
 class Medicion(Base):
     __tablename__ = "medicion"

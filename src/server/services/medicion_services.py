@@ -1,12 +1,12 @@
 from datetime import datetime
 
-from models.medicion import Medicion
+from src.server.models.medicion import Medicion
 
 
 async def registrar_medicion(
     session,
     *,
-    sensor_id: int,
+    #sensor_id: int,
     panel_id: int,
     tipo_medicion_id: int,
     valor: float,
@@ -18,7 +18,7 @@ async def registrar_medicion(
     """
 
     medicion = Medicion(
-        sensor_id=sensor_id,
+        #sensor_id=sensor_id,
         panel_id=panel_id,
         tipo_medicion_id=tipo_medicion_id,
         valor=valor,

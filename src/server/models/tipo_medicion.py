@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Integer, Float, DateTime, ForeignKey
-from app.db.base import Base
+from sqlalchemy import Column, Integer, String
+from src.server.database.base import Base
 
 class TipoMedicion(Base):
     __tablename__ = "tipo_medicion"

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from models.sensor import Sensor
+from src.server.models.sensor import Sensor
 
 
 async def registrar_sensor(
