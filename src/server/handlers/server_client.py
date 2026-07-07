@@ -23,6 +23,9 @@ class ServerClient:
         self.cache_paneles : dict[str, tuple[int,int,int]] = {}  # Diccionario para almacenar los paneles en caché
         self.cache_sensores : dict[tuple[int,int], int] = {}  # Diccionario para almacenar los sensores en caché
         self.tipos = {}  # Diccionario para almacenar los tipos de medición en caché
+        
+
+    async def llenar_cache(self):
         async with SessionLocal() as session:
             for tipo in TipoMedicionEnum:
                 self.tipos[tipo.value] = get_by_tipo(session,tipo.value).id
