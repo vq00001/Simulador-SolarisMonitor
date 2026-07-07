@@ -82,6 +82,11 @@ sudo apt install mosquitto mosquitto-clients -y
 
 ## Configuración del broker
 
+![IMPORTANT]
+```
+Para instalacion semi-automatica con máquinas virtuales ir a ./virtual_machine_configs/broker_vm/README.md.
+``` 
+
 Para conectarse al broker sera necesario editar los siguientes archivos: 
 
 1. /etc/mosquitto/mosquitto.conf
@@ -90,19 +95,23 @@ Para conectarse al broker sera necesario editar los siguientes archivos:
 
 Si se quiere ejecutar la simulacion del proyecto se deberán reemplazar por los ejemplos en src/config/mosquitto_files. Nota: es necesario abrirlos con privilegios de administrador para editarlos. 
 
-Reiniciar el servicio:
+Crear usuarios y contraseñas de prueba:
 
 ```bash
-sudo systemctl restart mosquitto
+# notar que solo el primer comando lleva -c para crear el archivo
+sudo mosquitto/passwd -c /etc/mosquitto/passwd -b "panel" "panel_password"
+
+sudo mosquitto/passwd /etc/mosquitto/passwd -b "server" "server_password"
+sudo mosquitto/passwd /etc/mosquitto/passwd -b "visualizer" "visualizer_password"
+
+# Asignar permisos para el archivo de contraseñas
+# indispensable
+sudo chmod 0700 /etc/mosquitto/passwd
+sudo chown mosquitto:mosquitto /etc/mosquitto/passwd
+
+# aplicar cambios
+sudo systemctl restart mosquitto 
 ```
-
-Por último crear usuarios y contraseñas de prueba:
-
-'''
-sudo mosquitto_passwd 
-
-'''
-
 ---
 
 ## Configuración de red
@@ -127,16 +136,13 @@ src/config/settings.py
 
 Definir:
 
-* Broker en máquina local:
-
-```
-localhost
-```
-
 * Broker en red:
 
-```
-IP_DEL_BROKER
+```bash
+CENTRAL_BROKER_CONFIG = {
+    "hostname": IP_DEL_BROKER,
+    "port": 1883,
+...
 ```
 
 ---
@@ -144,30 +150,5 @@ IP_DEL_BROKER
 ## Notas importantes
 
 * Si el broker se ejecuta en una máquina distinta, todas las máquinas deben usar su IP.
-* El puerto por defecto es `8883` y debe ser consistente en todo el sistema.
-* Asegurarse de que el firewall permita conexiones entrantes al puerto `8883`.
-
----
-
-## Ejecución del sistema
-
-### Ejecutar publicadores
-
-```bash
-python -m src.main.run_publishers
-```
-
----
-
-### Ejecutar suscriptores
-
-```bash
-python -m src.main.run_subscribers
-```
-
----
-
-## Ejecución en múltiples terminales
-
-Es posible ejecutar publicadores y suscriptores en distintas terminales de una misma máquina para pruebas locales.
-
+* El puerto por defecto es `1883` y debe ser consistente en todo el sistema.
+* Asegurarse de que el firewall permita conexiones entrantes al puerto `1883`.

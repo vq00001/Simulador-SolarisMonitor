@@ -27,6 +27,11 @@ for entry in "${users[@]}"; do
     fi
 done
 
+# asignar permisos al archivo de contraseñas
+sudo chmod 0700 "$PASSWD_FILE"
+sudo chown mosquitto:mosquitto "$PASSWD_FILE"
+
+
 echo "Configuración de Mosquitto finalizada"
 
 # crear script de configuracion de red

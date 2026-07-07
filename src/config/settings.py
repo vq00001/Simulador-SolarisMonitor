@@ -2,7 +2,7 @@ import os
 
 CENTRAL_BROKER_CONFIG = {
     "hostname": "broker-vm",
-    "port": 8883,
+    "port": 1883,
 
     # Simulación del enlace
     "bandwidth_bps": 1_000_000,  # 1 Mbps

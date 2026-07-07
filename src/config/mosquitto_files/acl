@@ -1,27 +1,23 @@
 user panel
 
 # para json
-topic read solar_data_panel/+
+topic write solar_data_panel/+
 
 # para datos por separado   
-topic read solar_data_panel/temperature/+
-topic read solar_data_panel/irradiance/+
-topic read solar_data_panel/luminosity/+
-topic read solar_data_panel/power/+
+topic write solar_data_panel/temperature/+
+topic write solar_data_panel/irradiance/+
+topic write solar_data_panel/luminosity/+
+topic write solar_data_panel/power/+
+
+user server
+topic write actuator/+
+topic read solar_data_panel/#
+
+user visualizer
+topic write data_request/solar_panel/#
+topic read data_response/solar_panel/#     
 
 user actuator
 # + -> id
 topic read actuator/+
 topic write actuator/response/+
-
-user server
-topic write actuator/+
-topic read solar_data_panel/#
-
-user server
-topic write actuator/+
-topic read solar_data_panel/#
-
-user dashboard
-topic write data_request/solar_panel/#
-topic read data_response/solar_panel/#        
