@@ -2,5 +2,6 @@ aiomqtt==2.5.1
 asyncpg==0.31.0
 greenlet==3.5.3
 paho-mqtt==2.1.0
+psycopg2-binary==2.9.12
 SQLAlchemy==2.0.51
 typing_extensions==4.15.0

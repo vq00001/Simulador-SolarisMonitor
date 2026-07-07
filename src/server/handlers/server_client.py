@@ -1,6 +1,7 @@
 # singleton
 from datetime import datetime
 
+import json
 import aiomqtt 
 from src.mqtt.definitions import UserRole
 from src.mqtt.panel_client import PanelClient
@@ -14,7 +15,8 @@ from src.server.services.panel_services import get_panel_by_uid, get_panel_by_ui
 class ServerClient:
 
     topics = [
-        PanelClient.Topic.ROOT + "/+/" + "+",    # escuchar todos los paneles solares
+        "solar_panel_data" + "/+",  # escuchar todos los paneles solares
+        "actuator" + "/response" + "/+"
     ]
     
     def __init__(self, broker: Broker):
@@ -42,6 +44,7 @@ class ServerClient:
             self.cache_paneles[panel_uid] = panel
         
         return panel
+
 
     async def procesar_datos(self,panel_uid: str, tipo_medicion: str, payload: float):
         """
@@ -94,10 +97,26 @@ class ServerClient:
 
     # Logica a ejecutar al recibir un mensaje
     async def do_on_message(self, message):
-        root, panel_uid, tipo_medicion = str(message.topic).split("/")
+        topic = str(message.topic).split("/")
         payload = message.payload.decode()
-        await self.procesar_datos(panel_uid,tipo_medicion,payload)
-        await self.retroalimentar(panel_uid, tipo_medicion, payload)
+        if len(topic) == 2:
+            if topic[0] == "actuator":
+                pass
+
+            elif topic[0] == "solar_panel_data":
+                panel = topic[1]
+                payload = json.loads(payload)
+                for clave,valor in payload.items():
+                    await self.procesar_datos(panel,clave, valor)
+                    await self.retroalimentar(panel, clave, valor)
+                
+
+        elif len(topic) == 3:
+            await self.procesar_datos(topic[2], topic[1], payload)
+            await self.retroalimentar(topic[2], topic[1], payload)
+        else :
+            print("Mal topic detectado")
+            return;
 
     async def publish(self, message: str, topic: str):
         
