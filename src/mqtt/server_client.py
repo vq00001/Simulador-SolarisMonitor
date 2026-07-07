@@ -23,7 +23,11 @@ class ServerClient:
         hostname, port = broker_host.get_broker_info()
 
         async with aiomqtt.Client(
-            hostname=hostname, port=port, identifier=UserRole.SERVER
+            hostname=hostname,
+            port=port,
+            identifier=UserRole.SERVER
+            username=SERVER_CLIENT_CONFIG["username"],
+            password=SERVER_CLIENT_CONFIG["password"]
         ) as client:
 
             # suscribirse a los topics definidos en la clase

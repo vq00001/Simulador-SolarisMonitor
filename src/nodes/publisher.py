@@ -10,7 +10,6 @@ Por cada panel se publican dos formas del mismo dato, en paralelo:
     {
         "id_panel":    int,
         "tiempo":      float,   # segundos desde epoch (Unix timestamp)
-        "luminosidad": float,   # lux
         "potencia":    float,   # W
         "irradiancia": float,   # W/m²
         "temperatura": float    # °C
@@ -65,15 +64,32 @@ class MQTTPublisher:
         self._client_cls = client_cls
         self._client = None  # type: ignore[assignment]
 
+        self.messages_sent: int = 0
+        self.bytes_sent: int = 0
+
     async def __aenter__(self) -> MQTTPublisher:
         mc = self._cfg.mqtt
-        self._client = self._client_cls(
+
+        client_kwargs: dict = dict(
             hostname=mc.broker_host,
             port=mc.broker_port,
             keepalive=mc.keepalive,
         )
+        # username/password son opcionales: solo se agregan si vienen
+        # configurados (ver src/config/settings.py, PANEL_CLIENT_CONFIG).
+        if mc.username is not None:
+            client_kwargs["username"] = mc.username
+        if mc.password is not None:
+            client_kwargs["password"] = mc.password
+        if mc.use_tls:
+            client_kwargs["tls_params"] = aiomqtt.TLSParameters()
+
+        self._client = self._client_cls(**client_kwargs)
         await self._client.__aenter__()
-        logger.info(f"Conectado al broker MQTT en {mc.broker_host}:{mc.broker_port}")
+        logger.info(
+            f"Conectado al broker MQTT en {mc.broker_host}:{mc.broker_port} "
+            f"(auth={'sí' if mc.username else 'no'}, tls={mc.use_tls})"
+        )
         return self
 
     async def __aexit__(self, *args: object) -> None:
@@ -137,7 +153,6 @@ class MQTTPublisher:
         payload = json.dumps({
             "id_panel":    panel_id,
             "tiempo":      timestamp,
-            "luminosidad": round(float(sensors["luminosity"][panel_id]), 4),
             "potencia":    round(float(sensors["power"][panel_id]), 4),
             "irradiancia": round(float(sensors["irradiance"][panel_id]), 4),
             "temperatura": round(float(sensors["temperature"][panel_id]), 4),
@@ -145,19 +160,24 @@ class MQTTPublisher:
         topic = f"{topic_prefix}/{panel_id:04d}"
 
         # 2. Topics por métrica separada, en paralelo con el combinado
-        metric_tasks = [
-            self._client.publish(
-                f"{topic_prefix}/{metric}/{panel_id:04d}",
-                json.dumps({
-                    "value": round(float(sensors[metric][panel_id]), 4),
-                    "timestamp": str(timestamp),
-                }),
-                qos=qos,
-            )
-            for metric in PER_METRIC_TOPICS
-        ]
+        # metric_payloads = [
+        #     (
+        #         f"{topic_prefix}/{metric}/{panel_id:04d}",
+        #         json.dumps({
+        #             "value": round(float(sensors[metric][panel_id]), 4),
+        #             "timestamp": str(timestamp),
+        #         }),
+        #     )
+        #     for metric in PER_METRIC_TOPICS
+        # ]
+
+        # Si se quiere enviar por métrica separada, descomentar el punto 2 y sumarle 
+        # metric_payloads a all_payloads. Por ahora se envía solo el JSON combinado.
+        all_payloads = [(topic, payload)]
+
+        self.messages_sent += len(all_payloads)
+        self.bytes_sent += sum(len(p.encode()) for _, p in all_payloads)
 
         await asyncio.gather(
-            self._client.publish(topic, payload, qos=qos),
-            *metric_tasks,
+            *(self._client.publish(t, p, qos=qos) for t, p in all_payloads)
         )

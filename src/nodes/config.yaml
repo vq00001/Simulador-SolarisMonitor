@@ -1,18 +1,9 @@
-# Configuración de la conexión MQTT
-
-mqtt:
-  broker_host: broker-vm.local   # alineado con CENTRAL_BROKER_CONFIG en src/config/settings.py
-  broker_port: 1883
-  topic_prefix: solar_panel_data # alineado con PanelClient.Topic.ROOT en src/mqtt/panel_client.py
-  qos: 0
-  keepalive: 60
-
 # Configuración de la simulación
 
 simulation:
   tick_rate: 1.0          # Segundos reales entre actualizaciones del ambiente
-  publish_rate: 5.0       # Segundos reales entre publicaciones MQTT
-  time_scale: 60.0        # 1 s real = 60 s simulados  →  1 día = 24 min reales
+  publish_rate: 30.0      # Segundos reales entre publicaciones MQTT
+  time_scale: 1800.0      # 1 s real = 60 s simulados  →  1 día = 24 min reales
   duration: null          # Duración total en segundos reales; null = forever
 
 # Configuración del ambiente
@@ -50,14 +41,14 @@ clusters:
   - id: 0
     name: zona_norte
     phi_offset: 0.0          # Sin desfase (zona de referencia)
-    panel_count: 100
+    panel_count: 10
 
   - id: 1
     name: zona_centro
     phi_offset: 0.2618       # π/12 rad ≈ 30 min de desfase
-    panel_count: 150
+    panel_count: 15
 
   - id: 2
     name: zona_sur
     phi_offset: 0.5236       # π/6 rad ≈ 1 h de desfase
-    panel_count: 100
+    panel_count: 10

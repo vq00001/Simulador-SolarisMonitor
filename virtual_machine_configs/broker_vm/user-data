@@ -8,23 +8,14 @@ autoinstall:
   identity:
     hostname: broker-vm
     username: brokeradmin
-    # Generar contraseña con mkpasswd -m sha-512
-    password: "password"
-  
-  # Setup network con DHCP para todas las interfaces de red
-  network:
-    version: 2
-    ethernets:
-      all-eth:
-        match:
-          name: "*"
-        dhcp4: true
-        dhcp6: true
+    # Generar contraseña con mkpasswd -m sha-512. 
+    # La contraseña es "brokeradmin" y se puede cambiar después de la instalación.
+    password: "$6$TNxrzr58RzVi1goJ$D9SlN7rxxDFmiKm0ERbKax2YCf8PJqoOVdrLt/.Mcsw4a1tQ0n1dYc08lD4C5RLhw2EsoHugP/KMqt49ZczXT0"
 
   refresh-installer:
     update: no
 
-  locale: es_CL.UTF-8
+  locale: es_CL.UTF-8 
   timezone: America/Santiago
 
   keyboard:
@@ -37,38 +28,58 @@ autoinstall:
 
   apt:
     update: true
+    
+  user-data:
+    write_files:
+      - path: /etc/mosquitto/mosquitto.conf
+        permissions: "0644"
+        content: |
+          persistence true
+          persistence_location /var/lib/mosquitto/
+          log_dest file /var/log/mosquitto/mosquitto.log
+          include_dir /etc/mosquitto/conf.d
+          acl_file /etc/mosquitto/acl
+          password_file /etc/mosquitto/passwd
 
+      - path: /etc/mosquitto/acl
+        permissions: "0644"
+        content: |   
+          user panel
+          # para json # + -> id
+          topic write solar_panel_data/+
+
+          # para datos por separado   
+          topic write solar_panel_data/temperature/+
+          topic write solar_panel_data/irradiance/+
+          topic write solar_panel_data/luminosity/+
+          topic write solar_panel_data/power/+
+
+          user actuator
+          topic read actuator/+
+          topic write actuator/response/+
+
+          user server
+          topic write actuator/+
+          topic read solar_panel_data/#
+          topic read actuator/response/#
+
+
+      - path: /etc/mosquitto/conf.d/listener.conf
+        permissions: "0644"
+        content: |
+          listener 1883
+          allow_anonymous false
+      
   packages:
+    - openssh-server
     - python3-full
     - python3-pip
     - python3-venv
     - avahi-daemon
-
-    # Bloque: sistema base
+    - net-tools
     - git
-
-    # Broker
     - mosquitto
     - mosquitto-clients
 
-  # ----------------------------------------------------------
-  # SECCION: CONFIGURACION FINAL
-  # ----------------------------------------------------------
-  late-commands: # broker-vm.local -> IP
-    - curtin in-target -- systemctl enable avahi-daemon --now
-
-    # ejecutar script de configuracion de mosquitto
-    - curtin in-target -- systemctl enable mosquitto 
-    - curtin in-target -- systemctl enable ssh --now
-
-    # instalar repositorio de simulador-solarismonitor
-    - curtin in-target -- su - brokeradmin -c 'git clone https://github.com/vq00001/Simulador-SolarisMonitor /home/brokeradmin/Simulador-SolarisMonitor'
-
-
-    # crear archivos de configuracion de mosquitto automaticamente
-    # seleccionar --mode manual para configurar manualmente
-    - curtin in-target -- python3 /home/brokeradmin/Simulador-SolarisMonitor/config/mosquitto_setup.py --mode automatic
-
-    # cargar configuracion de mosquitto
-    - curtin in-target -- systemctl restart mosquitto
-    - curtin in-target -- echo "Configuración de mosquitto finalizada"
+  late-commands:
+    - curtin in-target -- sudo -u brokeradmin git clone https://github.com/vq00001/Simulador-SolarisMonitor /home/brokeradmin/Simulador-SolarisMonitor
