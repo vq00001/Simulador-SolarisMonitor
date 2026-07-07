@@ -9,6 +9,7 @@ users=(
     "server server_password"
     "panel panel_password"
     "visualizer visualizer_password"
+    "actuator actuator_password"
 )
 
 sudo systemctl restart mosquitto

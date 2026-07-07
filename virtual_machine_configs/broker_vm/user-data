@@ -61,6 +61,7 @@ autoinstall:
           user server
           topic write actuator/+
           topic read solar_panel_data/#
+          topic read actuator/response/#
 
 
       - path: /etc/mosquitto/conf.d/listener.conf

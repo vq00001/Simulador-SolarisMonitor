@@ -27,3 +27,8 @@ VISUALIZER_CLIENT_CONFIG = {
     "username": "visualizer",
     "password": "visualizer_password"
 }
+
+ACTUATOR_CLIENT_CONFIG = {
+    "username": "actuator",
+    "password": "actuator_password"
+}

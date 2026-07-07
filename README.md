@@ -99,10 +99,10 @@ Crear usuarios y contraseñas de prueba:
 
 ```bash
 # notar que solo el primer comando lleva -c para crear el archivo
-sudo mosquitto/passwd -c /etc/mosquitto/passwd -b "panel" "panel_password"
-
-sudo mosquitto/passwd /etc/mosquitto/passwd -b "server" "server_password"
-sudo mosquitto/passwd /etc/mosquitto/passwd -b "visualizer" "visualizer_password"
+sudo mosquitto_passwd -c /etc/mosquitto/passwd -b "panel" "panel_password"
+sudo mosquitto_passwd /etc/mosquitto/passwd -b "server" "server_password"
+sudo mosquitto_passwd /etc/mosquitto/passwd -b "visualizer" "visualizer_password"
+sudo mosquitto_passwd /etc/mosquitto/passwd -b "actuator" "actuator_password"
 
 # Asignar permisos para el archivo de contraseñas
 # indispensable
