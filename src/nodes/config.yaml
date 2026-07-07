@@ -1,8 +1,19 @@
 # Configuración de la conexión MQTT
+#
+# Estos valores son un fallback funcional para correr main.py de forma
+# standalone. El origen de verdad son src/config/settings.py
+# (CENTRAL_BROKER_CONFIG, PANEL_CLIENT_CONFIG); test_publisher.py los
+# sobrescribe en tiempo de ejecución al importarlos.
 
 mqtt:
+  broker_host: broker-vm         # alineado con CENTRAL_BROKER_CONFIG["hostname"]
+  broker_port: 8883              # alineado con CENTRAL_BROKER_CONFIG["port"]
   topic_prefix: solar_panel_data # alineado con PanelClient.Topic.ROOT en src/mqtt/panel_client.py
- 
+  qos: 0
+  keepalive: 60
+  username: panel                # alineado con PANEL_CLIENT_CONFIG["username"]
+  password: panel_password       # alineado con PANEL_CLIENT_CONFIG["password"]
+  use_tls: false                 # cambiar a true si el broker exige TLS en el puerto 8883
 
 # Configuración de la simulación
 

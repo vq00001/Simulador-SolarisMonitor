@@ -11,7 +11,7 @@ from typing import Optional
 
 import yaml
 
-from src.config.settings import CENTRAL_BROKER_CONFIG
+
 # ──────────────────────────────────────────────────────────────────────────────
 #  Secciones de configuración
 # ──────────────────────────────────────────────────────────────────────────────
@@ -65,11 +65,17 @@ class EventConfig:
 class MQTTConfig:
     # Valores por defecto alineados con src/config/settings.py
     # (CENTRAL_BROKER_CONFIG) y src/mqtt/panel_client.py (Topic.ROOT).
-    broker_host: str = CENTRAL_BROKER_CONFIG.broker_host
-    broker_port: int = CENTRAL_BROKER_CONFIG.broker_port
-    topic_prefix: str = CENTRAL_BROKER_CONFIG.topic_prefix
-    qos: int = CENTRAL_BROKER_CONFIG.qos
-    keepalive: int = CENTRAL_BROKER_CONFIG.keepalive
+    # username/password quedan como fallback: el punto de entrada que
+    # use src.config.settings puede sobrescribirlos en tiempo de
+    # ejecución (ver test_publisher.py).
+    broker_host: str = "broker-vm"
+    broker_port: int = 8883
+    topic_prefix: str = "solar_panel_data"
+    qos: int = 0
+    keepalive: int = 60
+    username: Optional[str] = None
+    password: Optional[str] = None
+    use_tls: bool = False   # True si el broker exige TLS en broker_port
 
 
 @dataclass
