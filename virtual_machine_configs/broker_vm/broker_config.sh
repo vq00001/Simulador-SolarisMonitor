@@ -1,7 +1,7 @@
 RATE=54mbit
 DELAY=50ms
 LOSS=5%
-IFACE=\$(ip route | awk '/default/ {print $5}')
+IFACE=$(ip route | awk '/default/ {print $5}')
 
 PASSWD_FILE="/etc/mosquitto/passwd"
 
