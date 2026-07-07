@@ -46,11 +46,12 @@ class ServerClient:
         return panel
 
 
+
     async def procesar_datos(self,panel_uid: str, tipo_medicion: str, payload: float):
         """
         Procesa los datos recibidos en el mensaje y registra la medición en la base de datos.
         """
-        payload = int(payload)
+        payload = float(payload)
         async with SessionLocal() as session:
             try:
                 panel_id = await self.get_panel_id(session, panel_uid)
@@ -65,6 +66,7 @@ class ServerClient:
                 print("Commit hecho")
             except Exception as e:
                 session.rollback()
+                print(f'el error es:{e}')
                 raise e
 
     async def retroalimentar(self, panel_uid: str, tipo_medicion: str, payload: float):
@@ -82,14 +84,23 @@ class ServerClient:
                     print(f"ALERTA: La temperatura del panel {panel_uid} es demasiado baja: {payload}°C.")
                     msg = "CALENTAR"
 
-            case TipoMedicionEnum.LUMINOSIDAD.value:
+            case TipoMedicionEnum.POTENCIA.value:
                 if payload < 100:
-                    print(f"ALERTA: La luminosidad del panel {panel_uid} es demasiado baja: {payload}.")
-                    msg = "AUMENTAR_LUMINOSIDAD"
+                    print(f"ALERTA: La potencia del panel {panel_uid} es demasiado baja: {payload}.")
+                    msg = "AUMENTAR_POTENCIA"
 
                 elif payload > 1000:
-                    print(f"ALERTA: La luminosidad del panel {panel_uid} es demasiado alta: {payload}. Bro Wtf se cae el sol ")    
+                    print(f"ALERTA: La potencia del panel {panel_uid} es demasiado alta: {payload}. Bro Wtf se cae el sol ")    
                     msg = "CORRE"
+            
+            case TipoMedicionEnum.IRRADIANCIA.value:
+                if payload > 1000:
+                    print("MUY ALTA IRRADIANCIA")
+                    msg = "BAJAR IRRADIANCIA"
+                
+                elif payload < 0:
+                    print("IRRADIANCIA INCORRECTA")
+                    msg = "SUBIR IRRADIANCIA"
 
         if msg:
             print(f"Enviando mensaje de retroalimentación al panel {panel_uid}: {msg}")
@@ -107,8 +118,11 @@ class ServerClient:
                 panel = topic[1]
                 payload = json.loads(payload)
                 for clave,valor in payload.items():
+                    if clave == "tiempo" or clave == "id_panel":
+                        continue
                     await self.procesar_datos(panel,clave, valor)
                     await self.retroalimentar(panel, clave, valor)
+                    
                 
 
         elif len(topic) == 3:
@@ -122,8 +136,10 @@ class ServerClient:
         
         hostname, port = self.broker.get_broker_info()
         async with aiomqtt.Client(
-            hostname="localhost",
-            port=1883
+            hostname="broker-vm",
+            port=1883,
+            username =  "server",
+            password = "server_password"
         ) as client:
             await client.publish(topic, message)
 
@@ -133,8 +149,10 @@ class ServerClient:
         hostname, port = self.broker.get_broker_info()
        
         async with aiomqtt.Client(
-            hostname="localhost",
-            port=1883, 
+            hostname="broker-vm",
+            port=1883,
+            username =  "server",
+            password = "server_password" 
         ) as client:
 
             print("VOY A EMPEZAR A SUSCRIBIRME A COSAS")

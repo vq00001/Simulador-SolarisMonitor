@@ -25,8 +25,14 @@ async def main():
 
                 await registrar_tipo_medicion(
                     session,
-                    tipo=TipoMedicionEnum.LUMINOSIDAD.value,
-                    unidad="lux"
+                    tipo=TipoMedicionEnum.IRRADIANCIA.value,
+                    unidad="W/M2"
+                )
+
+                await registrar_tipo_medicion(
+                    session,
+                    tipo=TipoMedicionEnum.POTENCIA.value,
+                    unidad="Watts"
                 )
 
                 await session.commit()
