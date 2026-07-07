@@ -82,24 +82,26 @@ sudo apt install mosquitto mosquitto-clients -y
 
 ## Configuración del broker
 
-Editar o crear el archivo de configuración de listener:
+Para conectarse al broker sera necesario editar los siguientes archivos: 
 
-```bash
-sudo nano /etc/mosquitto/conf.d/listener.conf
-```
+1. /etc/mosquitto/mosquitto.conf
+2. /etc/mosquitto/acl
+3. /etc/mosquitto/conf.d/listener.conf
 
-Agregar:
-
-```conf
-listener 1883
-allow_anonymous true
-```
+Si se quiere ejecutar la simulacion del proyecto se deberán reemplazar por los ejemplos en src/config/mosquitto_files. Nota: es necesario abrirlos con privilegios de administrador para editarlos. 
 
 Reiniciar el servicio:
 
 ```bash
 sudo systemctl restart mosquitto
 ```
+
+Por último crear usuarios y contraseñas de prueba:
+
+'''
+sudo mosquitto_passwd 
+
+'''
 
 ---
 
@@ -142,8 +144,8 @@ IP_DEL_BROKER
 ## Notas importantes
 
 * Si el broker se ejecuta en una máquina distinta, todas las máquinas deben usar su IP.
-* El puerto por defecto es `1883` y debe ser consistente en todo el sistema.
-* Asegurarse de que el firewall permita conexiones entrantes al puerto `1883`.
+* El puerto por defecto es `8883` y debe ser consistente en todo el sistema.
+* Asegurarse de que el firewall permita conexiones entrantes al puerto `8883`.
 
 ---
 

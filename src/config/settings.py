@@ -1,7 +1,7 @@
 import os
 
 CENTRAL_BROKER_CONFIG = {
-    "hostname": "broker-vm.local",
+    "hostname": "broker-vm",
     "port": 8883,
 
     # Simulación del enlace
