@@ -38,81 +38,37 @@ autoinstall:
           persistence_location /var/lib/mosquitto/
           log_dest file /var/log/mosquitto/mosquitto.log
           include_dir /etc/mosquitto/conf.d
-          password_file /etc/mosquitto/passwd
           acl_file /etc/mosquitto/acl
+          password_file /etc/mosquitto/passwd
 
       - path: /etc/mosquitto/acl
         permissions: "0644"
         content: |   
           user panel
-          # para json
-          topic read solar_data_panel/+
+          # para json # + -> id
+          topic write solar_panel_data/+
+
           # para datos por separado   
-          topic read solar_data_panel/temperature/+
-          topic read solar_data_panel/irradiance/+
-          topic read solar_data_panel/luminosity/+
-          topic read solar_data_panel/power/+
+          topic write solar_panel_data/temperature/+
+          topic write solar_panel_data/irradiance/+
+          topic write solar_panel_data/luminosity/+
+          topic write solar_panel_data/power/+
+
           user actuator
-          # + -> id
           topic read actuator/+
           topic write actuator/response/+
 
           user server
           topic write actuator/+
-          topic read solar_data_panel/#
+          topic read solar_panel_data/#
 
 
       - path: /etc/mosquitto/conf.d/listener.conf
         permissions: "0644"
-        content: ""
-
-      - path: /etc/mosquitto/passwd
-        permissions: "0644"
-        
-
-      # variables de configuracion de red
-      - path: /home/brokeradmin
-        permissions: "0755"
         content: |
-          RATE=54mbit
-          DELAY=50ms
-          LOSS=5%
-          IFACE=$(ip route | awk '/default/ {print $5}')
-
-          PASSWD_FILE="/etc/mosquitto/passwd"
-
-          users=(
-              "server server_password"
-              "panel panel_password"
-              "visualizer visualizer_password"
-          )
-
-          sudo systemctl restart mosquitto
-
-          # crear usuarios y contraseñas para mosquitto
-          first=true
-          for entry in "${users[@]}"; do
-              read -r username password <<< "$entry"
-
-              # crear archivo de contraseñas si no existe
-              if $first; then
-                  sudo mosquitto_passwd -c -b "$PASSWD_FILE" "$username" "$password"
-                  first=false
-              else
-                  sudo mosquitto_passwd -b "$PASSWD_FILE" "$username" "$password"
-              fi
-          done
-            
-          echo "Configuración de Mosquitto finalizada"
-
-          # crear script de configuracion de red
-          sudo tc qdisc replace dev "$IFACE" root netem \
-              rate "$RATE" \
-              delay "$DELAY" \
-              loss "$LOSS"
-              
-          echo "Configuración de red finalizada"
-
+          listener 1883
+          allow_anonymous false
+      
   packages:
     - openssh-server
     - python3-full
