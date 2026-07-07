@@ -17,7 +17,7 @@ class ServerClient:
         "+/" + PanelClient.Topic.ROOT,    # escuchar todos los paneles solares
     ]
     
-    async def __init__(self, broker: Broker):
+    def __init__(self, broker: Broker):
         self.broker = broker
         # Se inicializan caches para evitar consultar base de datos
         self.cache_paneles : dict[str, tuple[int,int,int]] = {}  # Diccionario para almacenar los paneles en caché
