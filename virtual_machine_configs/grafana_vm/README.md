@@ -131,35 +131,102 @@ Se generará:
 custom_ubuntu.iso
 ```
 
-## Preparación del medio de instalación
+## Instalación del sistema
 
-### Opción 1 — Grabar en USB con `dd`
+El procedimiento de instalación depende del entorno donde se desplegará la imagen.
+
+- **Equipo físico:** es necesario preparar un medio de instalación (USB).
+- **Máquina virtual:** basta con montar el archivo ISO como unidad óptica virtual.
+
+---
+
+### Instalación en un equipo físico
+
+#### Preparación del medio de instalación
+
+##### Opción 1 — Grabar la ISO en un USB con `dd`
+
+Identifique el dispositivo USB:
 
 ```sh
 lsblk
-sudo dd if=personal_custom_ubuntu.iso of=/dev/sdX bs=4M status=progress && sync
 ```
+
+Grabe la imagen:
+
+```sh
+sudo dd if=custom_ubuntu.iso of=/dev/sdX bs=4M status=progress && sync
+```
+
+Reemplace `/dev/sdX` por el dispositivo correspondiente al USB.
 
 > [!WARNING]
 > ⚠️ Esto borra completamente el contenido del USB.
 
-### Opción 2 — Usar Ventoy (recomendado)
+##### Opción 2 — Usar Ventoy (recomendado)
 
-Se recomienda usar **Ventoy**, debido a que permite mantener múltiples ISOs en un mismo USB sin reescribir el dispositivo cada vez.
+Se recomienda utilizar **Ventoy**, ya que permite almacenar múltiples imágenes ISO en un mismo USB sin necesidad de volver a grabarlo.
 
-En ese caso, simplemente copie `custom_ubuntu.iso` al USB preparado con Ventoy y arranque desde allí.
+Una vez instalado Ventoy copie `custom_ubuntu.iso` al USB.
 
-### Instalación
+#### Instalación
 
 > [!WARNING]
-> Antes de iniciar, confirme que el equipo está conectado por Ethernet y que la conexión a Internet es estable.
-> Si la conexión se corta durante la instalación, el proceso puede fallar.
+> Antes de iniciar la instalación, verifique que el equipo esté conectado mediante Ethernet y que la conexión a Internet sea estable. Si la conexión se interrumpe durante el proceso, la instalación puede fallar.
 
-1. Arrancar desde el USB.
-2. Seleccionar **Autoinstall Ubuntu Server**.
-3. Esperar a que termine automáticamente.
+1. Inicie el equipo desde el USB.
+2. Seleccione **Autoinstall Ubuntu Server**.
+3. Espere a que finalice la instalación automática.
 
-Al finalizar, el sistema queda listo con Grafana en ejecución, seguridad básica configurada y acceso habilitado mediante SSH.
+---
+
+### Instalación en una máquina virtual
+
+1. Cree una nueva máquina virtual con las características de hardware deseadas.
+2. Configure `custom_ubuntu.iso` como unidad óptica (CD/DVD) de la máquina virtual.
+3. Inicie la máquina virtual desde la imagen ISO.
+4. Seleccione **Autoinstall Ubuntu Server**.
+5. Espere a que finalice la instalación automática.
+
+> [!WARNING]
+> Asegúrese de que la máquina virtual tenga acceso a Internet durante la instalación.
+
+---
+
+## Finalización
+
+Al finalizar la instalación, el sistema quedará configurado con:
+
+- Ubuntu Server instalado.
+- Grafana desplegado y en ejecución (`http://<IP_DEL_SERVIDOR>:3000`).
+- Configuración básica de seguridad aplicada.
+- Acceso remoto mediante SSH habilitado.
 
 > [!NOTE]
-> El usuario del sistema para inicio de sesión es `grafana-admin`. La contraseña asociada debe ser definida por usted durante la configuración inicial, según lo indicado previamente.
+> El usuario para iniciar sesión en el sistema es `grafana-admin`. La contraseña corresponde a la definida durante la configuración inicial de la imagen.
+
+### Acceso a Grafana
+
+Una vez que el sistema haya iniciado correctamente:
+
+1. Obtenga la dirección IP del servidor ejecutando:
+
+  ```sh
+  ip addr
+  ```
+
+2. Desde otro equipo conectado a la misma red (o desde el navegador de la máquina virtual si corresponde), abra:
+
+  ```text
+  http://<IP_DEL_SERVIDOR>:3000
+  ```
+
+  Por ejemplo:
+
+  ```text
+  http://192.168.1.100:3000
+  ```
+
+3. Inicie sesión en Grafana utilizando las credenciales configuradas durante la instalación.
+
+Si el acceso no es posible, verifique que el puerto **3000** sea accesible y que el servicio de Grafana esté en ejecución.
