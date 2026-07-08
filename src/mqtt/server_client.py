@@ -1,13 +1,15 @@
 # singleton
-import aiomqtt 
+import aiomqtt
+
+from src.mqtt.broker import Broker
 from src.mqtt.definitions import UserRole
 from src.mqtt.panel_client import PanelClient
-from src.mqtt.broker import Broker
+
 
 class ServerClient:
 
     topics = [
-        "+/" + PanelClient.Topic.ROOT,    # escuchar todos los paneles solares
+        "+/" + PanelClient.Topic.ROOT,  # escuchar todos los paneles solares
     ]
 
     # Logica a ejecutar al recibir un mensaje
@@ -18,13 +20,14 @@ class ServerClient:
 
     # Función para escuchar mensajes
     async def listen(self, broker_host: Broker):
-
         hostname, port = broker_host.get_broker_info()
-       
+
         async with aiomqtt.Client(
             hostname=hostname,
             port=port,
             identifier=UserRole.SERVER
+            username=SERVER_CLIENT_CONFIG["username"],
+            password=SERVER_CLIENT_CONFIG["password"]
         ) as client:
 
             # suscribirse a los topics definidos en la clase
