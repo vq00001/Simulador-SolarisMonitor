@@ -26,8 +26,8 @@ class ActuadorClient:
     """
 
     topics = [
-        "solar_panel_alerts/#",
-        "solar_panel_control/#",
+        "actuator/+",
+
     ]
 
     def __init__(self, broker: Broker, simulation: Simulation):
@@ -103,8 +103,8 @@ class ActuadorClient:
             command = {}
 
         topic_parts = [part for part in topic.split("/") if part]
-        if len(topic_parts) >= 2 and topic_parts[-2] in {"panel", "cluster"}:
-            command.setdefault("action", f"clean_{topic_parts[-2]}")
+        if len(topic_parts) >= 2 :
+            #command.setdefault("action", f"clean_{topic_parts[-2]}")
             try:
                 command.setdefault("target_id", int(topic_parts[-1]))
             except ValueError:

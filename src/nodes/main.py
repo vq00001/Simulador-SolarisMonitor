@@ -11,8 +11,8 @@ import asyncio
 import logging
 import sys
 
-from config import load_config
-from simulation import Simulation
+from .config import load_config
+from .simulation import Simulation
 
 if sys.platform == "win32":
     # aiomqtt necesita add_reader/add_writer para registrar el socket,

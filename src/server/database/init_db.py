@@ -2,14 +2,16 @@ from src.server.database.base import Base
 from src.server.database.session import engine
 from sqlalchemy import create_engine
 import os
+from dotenv import load_dotenv
 
 # Importar modelos para que SQLAlchemy los registre
 from src.server.models.panel import Panel
 from src.server.models.medicion import Medicion
 from src.server.models.tipo_medicion import TipoMedicion
 
+load_dotenv()
 
-DATABASE_URL = os.environ["DATABASE_URL_SYNC"]  
+DATABASE_URL = os.getenv["DATABASE_URL_SYNC"]  
 
 engine = create_engine(DATABASE_URL)
 

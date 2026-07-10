@@ -1,7 +1,7 @@
 import os
 
 CENTRAL_BROKER_CONFIG = {
-    "hostname": "broker-vm",
+    "hostname": "broker-vm.local",
     "port": 1883,
     "topic_prefix": "solar_panel_data",
 

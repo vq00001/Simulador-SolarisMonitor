@@ -3,6 +3,7 @@ from datetime import datetime
 
 import json
 import aiomqtt 
+from src.config.settings import SERVER_CLIENT_CONFIG, CENTRAL_BROKER_CONFIG
 from src.mqtt.definitions import UserRole
 from src.mqtt.panel_client import PanelClient
 from src.mqtt.broker import Broker
@@ -22,8 +23,7 @@ class ServerClient:
     def __init__(self, broker: Broker):
         self.broker = broker
         # Se inicializan caches para evitar consultar base de datos
-        self.cache_paneles : dict[str, tuple[int,int,int]] = {}  # Diccionario para almacenar los paneles en caché
-        self.cache_sensores : dict[tuple[int,int], int] = {}  # Diccionario para almacenar los sensores en caché
+        self.cache_paneles : dict[str, int] = {}  # Diccionario para almacenar los paneles en caché
         self.tipos = {}  # Diccionario para almacenar los tipos de medición en caché
         
 
@@ -82,29 +82,21 @@ class ServerClient:
                     msg = "ENFRIAR"
                 elif payload < 15:
                     print(f"ALERTA: La temperatura del panel {panel_uid} es demasiado baja: {payload}°C.")
-                    msg = "CALENTAR"
+                    msg = "clean_panel"
 
             case TipoMedicionEnum.POTENCIA.value:
                 if payload < 100:
                     print(f"ALERTA: La potencia del panel {panel_uid} es demasiado baja: {payload}.")
-                    msg = "AUMENTAR_POTENCIA"
-
-                elif payload > 1000:
-                    print(f"ALERTA: La potencia del panel {panel_uid} es demasiado alta: {payload}. Bro Wtf se cae el sol ")    
-                    msg = "CORRE"
+                    msg = "clean_panel"
             
             case TipoMedicionEnum.IRRADIANCIA.value:
                 if payload > 1000:
-                    print("MUY ALTA IRRADIANCIA")
-                    msg = "BAJAR IRRADIANCIA"
-                
-                elif payload < 0:
-                    print("IRRADIANCIA INCORRECTA")
-                    msg = "SUBIR IRRADIANCIA"
+                    print(f"Irradiancia alta en panel {panel_uid}")
+                    msg = "clean_shadow"
 
         if msg:
             print(f"Enviando mensaje de retroalimentación al panel {panel_uid}: {msg}")
-            await self.publish(msg, f"{panel_uid}/actuador")
+            await self.publish(msg, f"actuator/{panel_uid}")
 
     # Logica a ejecutar al recibir un mensaje
     async def do_on_message(self, message):
@@ -112,7 +104,7 @@ class ServerClient:
         payload = message.payload.decode()
         if len(topic) == 2:
             if topic[0] == "actuator":
-                pass
+                print(f"Se ha corregido el comportamiento del panel con id: {topic}")
 
             elif topic[0] == "solar_panel_data":
                 panel = topic[1]
@@ -130,16 +122,16 @@ class ServerClient:
             await self.retroalimentar(topic[2], topic[1], payload)
         else :
             print("Mal topic detectado")
-            return;
+            return
 
     async def publish(self, message: str, topic: str):
         
         hostname, port = self.broker.get_broker_info()
         async with aiomqtt.Client(
-            hostname="broker-vm",
-            port=1883,
-            username =  "server",
-            password = "server_password"
+            hostname=CENTRAL_BROKER_CONFIG["hostname"],
+            port=CENTRAL_BROKER_CONFIG["port"],
+            username =  SERVER_CLIENT_CONFIG["username"],
+            password = SERVER_CLIENT_CONFIG["password"]
         ) as client:
             await client.publish(topic, message)
 
@@ -149,21 +141,19 @@ class ServerClient:
         hostname, port = self.broker.get_broker_info()
        
         async with aiomqtt.Client(
-            hostname="broker-vm",
-            port=1883,
-            username =  "server",
-            password = "server_password" 
+            hostname=CENTRAL_BROKER_CONFIG["hostname"],
+            port=CENTRAL_BROKER_CONFIG["port"],
+            username =  SERVER_CLIENT_CONFIG["username"],
+            password = SERVER_CLIENT_CONFIG["password"]
         ) as client:
 
-            print("VOY A EMPEZAR A SUSCRIBIRME A COSAS")
+            print("Suscribiendo a topicos...")
             # suscribirse a los topics definidos en la clase
             for t in ServerClient.topics:
                 await client.subscribe(t)
             
-            print("VOY A EMPEZAR A ESUCHAR")
+            print("Comenzando a escuchar paquetes")
 
             # Llamar a funcion con logica a ejecutar al recibir un mensaje
             async for message in client.messages:
                 await self.do_on_message(message)
-
-            print("Termine de escuchar?")
