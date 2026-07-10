@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 import os
 from src.config.settings import DATABASE_URL
 
-DATABASE_URL_ = os.getenv[DATABASE_URL]  
+DATABASE_URL_ = DATABASE_URL
 
 engine = create_async_engine(DATABASE_URL_)
 

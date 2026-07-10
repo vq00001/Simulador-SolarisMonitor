@@ -11,7 +11,7 @@ from src.server.models.tipo_medicion import TipoMedicion
 from src.config.settings import DATABASE_URL_SYNC
 
 
-DATABASE_URL = os.getenv[DATABASE_URL_SYNC]  
+DATABASE_URL = DATABASE_URL_SYNC  
 
 engine = create_engine(DATABASE_URL)
 
