@@ -34,3 +34,7 @@ ACTUATOR_CLIENT_CONFIG = {
     "username": "actuator",
     "password": "actuator_password"
 }
+
+DATABASE_URL = "postgresql+asyncpg://solaris:solaris123@localhost/solarismonitor"  
+
+DATABASE_URL_SYNC = "postgresql://solaris:solaris123@localhost/solarismonitor"
