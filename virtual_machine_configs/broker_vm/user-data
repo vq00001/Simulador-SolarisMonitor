@@ -71,7 +71,6 @@ autoinstall:
           allow_anonymous false
       
   packages:
-    - openssh-server
     - python3-full
     - python3-pip
     - python3-venv
@@ -87,12 +86,10 @@ autoinstall:
     - curtin in-target -- sudo -u brokeradmin git clone https://github.com/vq00001/Simulador-SolarisMonitor /home/brokeradmin/Simulador-SolarisMonitor
 
     # Configuraciones de la base de datos 
-    - curtin in-target -- systemctl enable postgresql --now
+    #- curtin in-target -- systemctl enable postgresql --now
     
     #Crea el usuario y lo guarda en la variable de entorno DATABASE_URL
-    - curtin in-target -- sudo -u postgres psql -c "CREATE USER solaris WITH PASSWORD 'solaris123';"
-    - curtin in-target -- bash -c 'echo "DATABASE_URL=postgresql+asyncpg://solaris:solaris123@localhost/solarismonitor" >> /etc/environment'
-    - curtin in-target -- bash -c 'echo "DATABASE_URL_SYNC=postgresql://solaris:solaris123@localhost/solarismonitor" >> /etc/environment'
-
+    #- curtin in-target -- sudo -u postgres psql -c "CREATE USER solaris WITH PASSWORD 'solaris123';"
+   
     # Crea la base de datos solarismonitor y le asigna el usuario solaris como propietario
-    - curtin in-target -- sudo -u postgres createdb -O solaris solarismonitor
+    #- curtin in-target -- sudo -u postgres createdb -O solaris solarismonitor
